@@ -10,9 +10,8 @@ class Whiteboard(SaveAndLoad):
     Colors = {'b': 'blue', 'r': 'red', 'g': 'green', 'o': 'orange', 'y': 'yellow', 'c': 'cyan', 'p': 'purple1',
               'd': 'black', 's': 'snow'}
 
-    def __init__(self, ID, socket, send_message):
-        SaveAndLoad.__init__(self, socket, send_message)
-        self.ID = ID
+    def __init__(self):
+        SaveAndLoad.__init__(self)
         self._init_whiteboard()
         self._init_item_button()
         self._init_user_button()

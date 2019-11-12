@@ -9,8 +9,8 @@ class DrawingTools(Whiteboard):
               'd': 'black', 's': 'snow'}
     line_width = 2
 
-    def __init__(self, ID, socket, send_message):
-        Whiteboard.__init__(self, ID, socket, send_message)
+    def __init__(self):
+        Whiteboard.__init__(self)
 
     # ---------- DRAW OVAL FROM MESSAGE----------
 

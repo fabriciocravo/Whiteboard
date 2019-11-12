@@ -11,11 +11,8 @@ class Messager(DrawingTools):
 
     # In the init function we define what we need to construct the messaging part of our program
     # We have all that is needed to
-    def __init__(self, ID, connexion, send_message_method):
-        DrawingTools.__init__(self, ID, connexion, send_message_method)
-        self.userID = ID
-        self.connexion = connexion
-        self.send_message = send_message_method
+    def __init__(self):
+        DrawingTools.__init__(self)
 
         self.scroll_bar = tkinter.Scrollbar(self.myWhiteBoard)
         self.msg_list = tkinter.Text(self.myWhiteBoard, height = 25, width=25, yscrollcommand = self.scroll_bar.set, font="Courier", state="disabled")
@@ -52,7 +49,7 @@ class Messager(DrawingTools):
             ExternalWindows.show_error_box("Invalid character")
             return None
         self.e1.delete(0, 'end')
-        msg = ("TA", self.userID, msg)
+        msg = ("TA", self.ID, msg)
         self.send_message(msg)
 
 

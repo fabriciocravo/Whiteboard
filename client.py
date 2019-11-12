@@ -10,7 +10,7 @@ from Tools.Permissions import Permission
 
 
 
-class Client(Thread,Messager, Permission):
+class Client(Thread,Messager):
 
     # Tracks whether left mouse is down
     left_but = "up"
@@ -28,8 +28,7 @@ class Client(Thread,Messager, Permission):
     Objects = {'line': 'L', 'oval': 'O', 'circle': 'C', 'rectangle': 'R', 'square': 'S', 'erase': 'E', 'drag': 'DR'}
 
     def __init__(self):
-        Permission.__init__(self)
-        Messager.__init__(self, self.ID, self.s, self.send_message)
+        Messager.__init__(self)
         Thread.__init__(self)
         self.setDaemon(True)
         self._init_mouse_action()

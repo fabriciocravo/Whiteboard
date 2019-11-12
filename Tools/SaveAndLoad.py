@@ -2,18 +2,15 @@ import pickle
 from tkinter import Tk
 from Tools.graphical_widgets import ExternalWindows
 from tkinter.filedialog import askopenfilename, asksaveasfilename
-from Tools.network import MConnection
-import os
-import time
+from Tools.Permissions import Permission
 
-class SaveAndLoad():
+class SaveAndLoad(Permission):
 
     #Here we define an object that allows the user to register the logs from his whiteboard
     Logs = {}
 
-    def __init__(self, connexion, send_message_method):
-        self.connexion = connexion
-        self.send_message = send_message_method
+    def __init__(self):
+        Permission.__init__(self)
 
 
     #For each message the user receives we append it to it's logs object
@@ -82,8 +79,3 @@ class SaveAndLoad():
 
 
 
-
-if __name__ == '__main__':
-
-    s = SaveAndLoad()
-    print(s)

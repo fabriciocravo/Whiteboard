@@ -1,6 +1,7 @@
 from Tools.network import MConnection
-from Tools.SaveAndLoad import SaveAndLoad
 
+# This class contains all the information relating the Permission part of the Whiteboard
+# which means keeping track of the connected users,
 class Permission(MConnection):
 
     listOfAllowed = []
