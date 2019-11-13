@@ -13,14 +13,12 @@ class ExternalWindows:
     _Text = "WOW"
     _Nickname = "lol"
 
-
-
     # This temporary variable is used to get any other things we might need from the user
     # A little bit confusing but it works
     _Temp = ""
 
-    #This method is used to show error boxes
-    #Everytime an error message we show a box with the given message
+    # This method is used to show error boxes
+    # Everytime an error message we show a box with the given message
     @classmethod
     def show_error_box(cls, msg):
         master = Tk()
@@ -28,9 +26,9 @@ class ExternalWindows:
         Button(master, text='OK', command= master.destroy ).grid(row=1,  pady=4)
         master.mainloop()
 
-    #This is the method that is used to get the ip and the port from the user!
-    #It sets the protected class variable _Ip and _port to the values given by our user
-    #This value is set by inputing the value in the widgets
+    # This is the method that is used to get the ip and the port from the user!
+    # It sets the protected class variable _Ip and _port to the values given by our user
+    # This value is set by inputing the value in the widgets
     @classmethod
     def getValuesFromUser(cls):
 
@@ -41,7 +39,6 @@ class ExternalWindows:
             except:
                 pass
             master.destroy()
-
 
         def exit_program():
             exit()
@@ -64,7 +61,8 @@ class ExternalWindows:
 
         cls.check_ip_and_port()
 
-
+    # This method checks using regular expressions to see if the IP and port number
+    # are within valid parameters
     @classmethod
     def check_ip_and_port(cls):
 
@@ -80,8 +78,8 @@ class ExternalWindows:
         print("Information received IP: {} Port: {}".format(cls._IP, cls._Port))
 
 
-    #Method for getting text from user
-    #This is used to print the text on the drawing board!
+    # Method for getting text from user
+    # This is used to print the text on the drawing board!
     @classmethod
     def get_text_from_user(cls):
 
@@ -93,8 +91,6 @@ class ExternalWindows:
             else:
                 cls._Text = temp
 
-
-
         master = Tk()
         Label(master, text="What do you want to write?").grid(row=0)
         e1 = Entry(master)
@@ -104,7 +100,7 @@ class ExternalWindows:
         Button(master, text='Set', command=get_text).grid(row=2, column=0, sticky=W, pady=4)
         master.mainloop()
 
-    #This class is used to retrieve the user's selected nickname
+    # This class is used to retrieve the user's selected nickname
     @classmethod
     def get_nickname_from_user(cls):
 
@@ -114,8 +110,6 @@ class ExternalWindows:
             except:
                 pass
             master.destroy()
-
-
 
         master = Tk()
         Label(master, text="Choose a Nickname").grid(row=0)
@@ -129,6 +123,9 @@ class ExternalWindows:
 
         cls.check_nickname()
 
+    # This function is used to check to see if the nickname is within valid parameters
+    # We only allow letters and 6 characters long
+    # Why 6? Cause i wanted that way, it's a nickname for God sake
     @classmethod
     def check_nickname(cls):
 
@@ -141,6 +138,10 @@ class ExternalWindows:
             cls.show_error_box("Only letters")
             cls.get_nickname_from_user()
 
+    # This method was created for getting general data from the user
+    # It's not currently used, but it was implemented due to it's potential
+    # It may be necessary to get things for the user within new updates
+    # Therefore a flexible method that allows us to get anything we want serves it purpose
     @classmethod
     def get_anything_from_user(cls, msg):
 
@@ -157,7 +158,7 @@ class ExternalWindows:
         Button(master, text='Set', command=get_text).grid(row=2, column=0, sticky=W, pady=4)
         master.mainloop()
 
-    #Return methods for the protected variables!
+    # Return methods for the protected variables!
     @classmethod
     def return_ip(cls):
         return cls._IP
@@ -184,4 +185,4 @@ if __name__ == '__main__':
     print(ExternalWindows.return_ip())
 
     ExternalWindows.get_nickname_from_user()
-    print(ExternalWindows._Nickname)
+    print(ExternalWindows.return_nickname())

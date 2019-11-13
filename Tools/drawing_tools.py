@@ -12,8 +12,14 @@ class DrawingTools(Whiteboard):
     def __init__(self):
         Whiteboard.__init__(self)
 
-    # ---------- DRAW OVAL FROM MESSAGE----------
+    # ---------- DRAW FROM MESSAGE----------
 
+    # Here we draw from the received message
+    # All messages here are tuples with the format (A,B,C,D,F)
+    # And A, the first index of the tuple, contains the type of message
+    # B,C usually contain coordinates from creation of the message
+    # D contains the user that has draw the message
+    # F contains an unique id for each message, this allows us to find the object when needed
     def draw_from_message(self, msg):
         _type = msg[0]
         if _type == 'O':
@@ -129,12 +135,20 @@ class DrawingTools(Whiteboard):
         item = self.drawing_area.create_text(a, b, fill=self.Colors[color], font=text_font, text=write)
         self.drawing_area.itemconfig(item, tags=(msg[-2], msg[-1]))
 
+    # -------------------- DRAG --------------------------------
+    # Here we drag objects from a received drag message
+    # The drag message structure is (DR, msg_identification, newposition1, newposition2, user)
+    # So we use the part 2 and 3 to move, and the msg_identification to find the object on the board
+    # All objects are tagged with their message identification, which allows us to find them this way
     def _drag_from_message(self, msg):
         a, b = msg[2], msg[3]
         item = self.drawing_area.find_withtag(msg[1])
         self.drawing_area.move(item, a, b)
 
-    # This receives the delete message and proceeds to delete it
+    # -------------------- DELETE --------------------------------
+    # Delete messages are from the format ("E", msg_identification)
+    # So since every object is tagged with their message identification
+    # We find them using this tag and delete it!
     def _delete_from_message(self, msg):
         item = self.drawing_area.find_withtag(msg[1])
         self.drawing_area.delete(item)

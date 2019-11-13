@@ -96,8 +96,9 @@ class Client(Thread,Messager):
     # Once we have the 4 coordinates required for the drawing we call the drawing function,
     # the drawing function depends on the tool selected by the user
     # The tool is selected by pressing the widget on the main screen
-    # The x_pos and y_pos are set to None for the mouse drawing
-    # (if they are in this state one can't draw with the mouse)
+    # Here we finally draw when the mouse is released
+    # When the mouse is released we call object draw that is responsible for drawing a object
+    # Or the text draw responsible for drawing text
     def left_but_up(self, event=None):
         self.left_but = "up"
 
@@ -164,18 +165,20 @@ class Client(Thread,Messager):
             msg = ('T', self.text, self.x1_line_pt, self.y1_line_pt, self.color, self.ID)
             self.send_message(msg)
 
+    # ------- Sending Messages for drawing ------------------------------------------------------
+    # In this function we prepare the messages that will be sent by the connexion class
+    # The messages here are a tuple of format:
+    # (A,B,C,D,E,F) where A is the letters refering to the type, B,C,D,E are coordinates E is the color and F is the user ID
+    # For the drag message things are different, first the type, them the object clicked, them the changes in coordinates
     def send_item(self, msg_type):
         if msg_type in ['L', 'C', 'O', 'R', 'S']:
             msg = (msg_type, self.x1_line_pt, self.y1_line_pt, self.x2_line_pt, self.y2_line_pt,
                    self.color, self.ID)
             self.send_message(msg)
-        if msg_type in ['E']:
-            msg = (msg_type,)
-            self.send_message(msg)
         if msg_type in ['DR']:
             if self.last_object_clicked is not None and self.user_last_object_clicked in self.listOfPermissions:
                 msg = (msg_type, self.last_object_clicked, self.x2_line_pt - self.x1_line_pt,
-                       self.y2_line_pt - self.y1_line_pt, self.color, self.ID)
+                       self.y2_line_pt - self.y1_line_pt)
                 self.send_message(msg)
 
     # DELETE STUFF ####################################

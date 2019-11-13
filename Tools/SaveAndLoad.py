@@ -4,6 +4,11 @@ from Tools.graphical_widgets import ExternalWindows
 from tkinter.filedialog import askopenfilename, asksaveasfilename
 from Tools.Permissions import Permission
 
+# This class allows the user to save and load the state of the Whiteboard
+# To do that each user keeps a record of the server logs within themselves
+# However, they are stored differently, here they are store in tuple format
+# In the server they are stored in message format
+# This allows for direct sending in both cases!
 class SaveAndLoad(Permission):
 
     #Here we define an object that allows the user to register the logs from his whiteboard
@@ -26,6 +31,7 @@ class SaveAndLoad(Permission):
 
 
     # Here we change the position in the Logs of objects that have been dragged on the scream
+    # Quite similar to a function in the Server!
     def change_position(self, msg):
 
         # We retrieve the original message
@@ -39,21 +45,18 @@ class SaveAndLoad(Permission):
             OriginalMessage[3] = str(int(OriginalMessage[3]) + int(msg[2]))
             OriginalMessage[2] = str(int(OriginalMessage[2]) + int(msg[3]))
             OriginalMessage[4] = str(int(OriginalMessage[4]) + int(msg[3]))
-            OriginalMessage = " ".join(OriginalMessage)
-
-            # Rewrite the log
         elif (OriginalMessage[0] in ['T']):
             OriginalMessage[2] = str(int(OriginalMessage[2]) + int(msg[2]))
             OriginalMessage[3] = str(int(OriginalMessage[3]) + int(msg[3]))
-            OriginalMessage = " ".join(OriginalMessage)
 
-
+    # Here we delete an object from the logs if a delete message has been received
     def delete_from_local_logs(self, msg):
         try:
             self.Logs.pop(msg[1])
         except KeyError:
             pass
 
+    # Here we save the state of the board by using a pickle of the dictionary created to store the logs
     def save(self):
         path = asksaveasfilename( defaultextension=".pickle")
         try:
@@ -62,15 +65,13 @@ class SaveAndLoad(Permission):
         except FileNotFoundError:
             pass
 
-
-
     # Here we process and send the load messages
+    # Ask to open the pickle file and them spam the messages from the dictonary
+    # Since the messages are already in the needed format we just send them directly
     def load(self):
-        Tk().withdraw()
         filename = askopenfilename()
         try:
             with open(filename, 'rb') as file:
-
                 self.LoadedLogs = pickle.load(file)
                 for key in self.LoadedLogs:
                     self.send_message(self.LoadedLogs[key])

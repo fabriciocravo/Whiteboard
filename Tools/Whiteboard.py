@@ -6,10 +6,14 @@ from Tools.SaveAndLoad import SaveAndLoad
 
 class Whiteboard(SaveAndLoad):
 
+    # Here we initiate with the line drawing tool, this is the tool currently used to draw
     drawing_tool = "line"
+    # Here we have the dictionary with the used colors to paint!
     Colors = {'b': 'blue', 'r': 'red', 'g': 'green', 'o': 'orange', 'y': 'yellow', 'c': 'cyan', 'p': 'purple1',
               'd': 'black', 's': 'snow'}
 
+    # Here we initiate the whiteboard by calling all the functions necessary to construct it
+    # And also initiate the parent class!
     def __init__(self):
         SaveAndLoad.__init__(self)
         self._init_whiteboard()
@@ -19,14 +23,21 @@ class Whiteboard(SaveAndLoad):
         self._init_drawing_area()
         self.color = 'b'
 
+    # Here we have the main loop of the Whiteboard when it is closed it executes the code just bellow
+    # Which raises an exception that closes the software
     def show_canvas(self):
         mainloop()
         raise Exception("Board Closed Ending Execution")
 
+    # Here we initiate the whiteboard with Tk() and set it's dimensions
     def _init_whiteboard(self):
         self.myWhiteBoard = Tk()
         self.myWhiteBoard.geometry('2000x1100')
 
+    # ---------------------------------- Button functions ------------------------------------------
+    # Here we have the buttons on the top of the whiteboard
+    # Those buttons are responsible for changing the drawing tool as their name indicates
+    # Every button pressed is a different drawing tool
     def _init_item_button(self):
         Button(self.myWhiteBoard, text='line', height=1, width=5, bg='dark goldenrod', font='Arial',
                command=lambda: self.set_drawing_tool('line')).place(x=70, y=0)
@@ -49,9 +60,11 @@ class Whiteboard(SaveAndLoad):
         Button(self.myWhiteBoard, text='delALL', height=1, width=5, bg='snow', font='Arial',
                command=self.erase_all).place(x=700, y=0)
 
+    # This is the own user button, it is used mostly as a display of the user name
     def _init_user_button(self):
         Button(self.myWhiteBoard, text=self.ID, height=1, width=5, bg='snow').place(x=1100, y=0)
 
+    # This are the color buttons, they are responsible for changing the colors of the corresponding drawings
     def _init_color_button(self):
 
         Button(self.myWhiteBoard, height=1, width=5, bg='red',
@@ -110,7 +123,8 @@ class Whiteboard(SaveAndLoad):
                 self.connected_users_permission_buttons.append(button)
                 start_y += 50
 
-
+    # Here we initiate the drawing area, which is a canvas
+    # and place it accordingly
     def _init_drawing_area(self):
         self.drawing_area = Canvas(self.myWhiteBoard, width=1000, height=1000, bg='white')
         self.drawing_area.place(y=50)
@@ -131,12 +145,19 @@ class Whiteboard(SaveAndLoad):
 
     #################################GETIING THE TEXT##################################################################
     # This part gets text from the user before printing it!
+    # It refers to the text functionality of the text button widget on the top
     def get_text_from_user(self):
         self.drawing_tool = 'text'
         ExternalWindows.get_text_from_user()
 
+    # ----------------------------- Erase All Function -----------------------------------------------------------------
+    # Since this is an extra functionality i will explain it more extensively
+    # This function finds every object tagged with the user nickname (user ID)
+    # And also every single object tagged with an user which is in his list of permissions
+    # Since every user is in it's own list of permissions, we only need to check the list of permissions
+    # Disconnected users loose their privileges!
+    # Them it sends a delete message for every one of them!
     def erase_all(self):
-
         A = self.drawing_area.find_all()
         for a in A:
             a = self.drawing_area.gettags(a)

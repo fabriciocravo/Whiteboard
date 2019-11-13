@@ -49,18 +49,26 @@ class Server(threading.Thread):
 
             time.sleep(0.1)
 
-            #Receive the choosen ID from user
-            NewUserId = connexion.recv(1024).decode()
+            # Here we start a thread to wait for the users nickname input
+            # We do this so a server can wait for a nickname input and listen to new connections
+            threading.Thread(target=self.wait_for_user_nickname, args=[connexion]).start()
 
-            for log in Logs:
-                connexion.send(Logs[log])
+    # This function was created just to wait for the users input nickname
+    # Once it's done if sends the logs so the user can be up to date with the board
+    # And finally it creates the Client Thread which will be responsible for listening to the user messages
+    def wait_for_user_nickname(self, connexion):
+        # Receive the chosen ID from user
+        NewUserId = connexion.recv(1024).decode()
 
-            a = Client(connexion,NewUserId)
+        for log in Logs:
+            connexion.send(Logs[log])
 
-            a.load_users()
-            Clients.append(a)
-            Server.ID = Server.ID + 1
-            a.start()
+        a = Client(connexion, NewUserId)
+
+        a.load_users()
+        Clients.append(a)
+        Server.ID = Server.ID + 1
+        a.start()
 
 
 # -----------------------------------CLIENTS -------------------------------------
@@ -70,7 +78,7 @@ class Client(threading.Thread):
 
     MessageID = 0
 
-    def __init__(self, connexion,clientID):
+    def __init__(self, connexion, clientID):
         threading.Thread.__init__(self)
         self.connexion = connexion
         self.clientID = clientID
@@ -82,14 +90,11 @@ class Client(threading.Thread):
             msg = 'A' + ' ' + str(self.clientID) + ' ' + 'Ø'
             client.connexion.send(msg.encode('ISO-8859-1'))
 
-
-
-
     def run(self):
         while True:
             try:
-                #Here we start by reading the messages
-                #Split according to the protocol
+                # Here we start by reading the messages
+                # Split according to the protocol
                 msg = ""
                 while True:
                     data = self.connexion.recv(1).decode('ISO-8859-1')
@@ -97,26 +102,14 @@ class Client(threading.Thread):
                         break
                     msg = msg + data
 
-                print(msg)
-
                 splitMsg = msg.split()
 
-
-                #Z is used to indicate message deletion so let's echo with a different function
-                #Deletion messages are treated differently from normal messages
-                #We don't keep track of them, and they must erase their log from the server
-                #So we call a different function to deal with them
-                if (splitMsg[0] == 'Z'):
+                # Z is used to indicate message deletion so let's echo with a different function
+                # Deletion messages are treated differently from normal messages
+                # We don't keep track of them, and they must erase their log from the server
+                # So we call a different function to deal with them
+                if (splitMsg[0] == 'Z' or splitMsg[0] == 'E'):
                     self.echoes_delete(msg,splitMsg)
-                    continue
-                elif(splitMsg[0] == 'E'):
-                    for s in splitMsg:
-                        try:
-                            Logs.pop(s)
-                        except KeyError:
-                            pass
-                    msg = msg + " Ø"
-                    self.echoesAct3(msg)
                     continue
                 # Here we have the drag messages
                 elif(splitMsg[0] == 'DR'):
@@ -130,24 +123,23 @@ class Client(threading.Thread):
                 elif(splitMsg[0] in ['O', 'C', 'L', 'R', 'S', 'E', 'D', 'Z', 'T']):
                     self.echoes(msg)
 
-            #We pass the Connection Reset Error since the pinger will deal with it more effectivelly
+            # We pass the Connection Reset Error since the pinger will deal with it more effectivelly
             except ConnectionResetError:
                 pass
             except ConnectionAbortedError:
                 pass
 
-    #Main echoes function!
-    #This is responsible for echoing the message between the clients
+    # Main echoes function!
+    # This is responsible for echoing the message between the clients
     def echoesAct3(self,msg):
         msg = msg + " Ø"
         msg = msg.encode('ISO-8859-1')
         for client in Clients:
             client.connexion.sendall(msg)
 
-
-    #Here we echo messages to all members of the network
-    #Keep a dictonary of the messages to send it to new users
-    #Update the message number for every message send
+    # Here we echo messages to all members of the network
+    # Keep a dictionary of the messages to send it to new users
+    # Update the message number for every message send
     def echoes(self, msg):
         msg = msg + " " + "m" + str(Client.MessageID)
         # We need to keep logs of all drawing messages to redraw them on new arriving clients
@@ -157,9 +149,9 @@ class Client(threading.Thread):
         self.echoesAct3(msg)
 
 
-    #Here we echo delete messages
-    #We need to remove them from the message log
-    #And finally echoe the message to all members of the server
+    # Here we echo delete messages
+    # We need to remove them from the message log
+    # And finally echoe the message to all members of the server
     def echoes_delete(self, msg, splitMsg):
         try:
             Logs.pop(splitMsg[1])
@@ -168,33 +160,33 @@ class Client(threading.Thread):
         self.echoesAct3(msg)
 
 
-    #Here we update the position of a draged object in the server
+    # Here we update the position of a draged object in the server
     def update_position_in_logs(self, splitMsg):
 
-        #We retrieve the original message
+        # We retrieve the original message
         OriginalMessage = Logs[splitMsg[1]]
-        OriginalMessage = OriginalMessage.decode()
+        OriginalMessage = OriginalMessage[:-1]
+        print(OriginalMessage)
+        OriginalMessage = OriginalMessage.decode('ISO-8859-1')
         OriginalMessage = OriginalMessage.split()
 
-        #Them add to the coordinates according to the drag!
-        #The position of the coordinates of each message is different for different types of message
-        #This requires us to alternate the coordinates differently according to the type
+        # Them add to the coordinates according to the drag!
+        # The position of the coordinates of each message is different for different types of message
+        # This requires us to alternate the coordinates differently according to the type
         if( OriginalMessage[0] in ['L', 'C', 'O', 'R', 'S', 'D']):
             OriginalMessage[1] = str(int(OriginalMessage[1]) + int(splitMsg[2]))
             OriginalMessage[3] = str(int(OriginalMessage[3]) + int(splitMsg[2]))
             OriginalMessage[2] = str(int(OriginalMessage[2]) + int(splitMsg[3]))
             OriginalMessage[4] = str(int(OriginalMessage[4]) + int(splitMsg[3]))
             OriginalMessage = " ".join(OriginalMessage)
-
-            #Rewrite the log
-            Logs[splitMsg[1]] = OriginalMessage.encode()
-        elif(   OriginalMessage[0] in ['T'] ):
+        elif( OriginalMessage[0] in ['T'] ):
             OriginalMessage[2] = str(int(OriginalMessage[2]) + int(splitMsg[2]))
             OriginalMessage[3] = str(int(OriginalMessage[3]) + int(splitMsg[3]))
             OriginalMessage = " ".join(OriginalMessage)
 
             # Rewrite the log
-            Logs[splitMsg[1]] = OriginalMessage.encode()
+        OriginalMessage = OriginalMessage + " Ø"
+        Logs[splitMsg[1]] = OriginalMessage.encode('ISO-8859-1')
 
 # --------------------------------PINGER------------------------------------------------------------
 # This is the pinger Thread, it is used to check how many users are currently connected
