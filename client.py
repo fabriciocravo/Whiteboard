@@ -8,8 +8,6 @@ from Tools.SaveAndLoad import SaveAndLoad
 from Tools.Messanger import Messager
 from Tools.Permissions import Permission
 
-
-
 class Client(Thread,Messager):
 
     # Tracks whether left mouse is down
