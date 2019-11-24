@@ -9,12 +9,13 @@ import os
 class Messager(DrawingTools):
 
     # Ok, in the init function we start by stating the parent class
-    # Them afterwards we use everything we need to construct a messaging tollbox
+    # Them afterwards we use everything we need to construct a messaging toolbox
     # We define a Text object that will contain the list of messages send in the channel
     # And bellow that a Entry object that takes the inputs from the user
     # After taking the input from the user it sends a message to the network
-    def __init__(self):
-        DrawingTools.__init__(self)
+    def __init__(self, connexion, save_and_load, permissions):
+        self.my_connexion = connexion
+        DrawingTools.__init__(self, connexion, save_and_load, permissions)
 
         self.scroll_bar = tkinter.Scrollbar(self.myWhiteBoard)
         self.msg_list = tkinter.Text(self.myWhiteBoard, height = 25, width=25, yscrollcommand = self.scroll_bar.set, font="Courier", state="disabled")
@@ -56,8 +57,8 @@ class Messager(DrawingTools):
             ExternalWindows.show_error_box("Invalid Ø character")
             return None
         self.e1.delete(0, 'end')
-        msg = ("TA", self.ID, msg)
-        self.send_message(msg)
+        msg = ("TA", self.my_connexion.ID, msg)
+        self.my_connexion.send_message(msg)
 
 
 

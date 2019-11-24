@@ -5,17 +5,17 @@ from Tools.network import MConnection
 # Keeping track of the users i gave permission to delete my stuff (listOfPermissions)
 # Keeping track of the users that allowed me to delete their stuff (listOfAllowed)
 # Those are all declared as empty lists in the beginning of the class
-class Permission(MConnection):
-    # ____________________________Necessary Data_______________________________________________
-    listOfAllowed = []
-    listOfPermissions = []
-    connected_users = []
-    connected_users_buttons = []
-    connected_users_permission_buttons = []
+class Permission():
 
-    # For the initialization of this class, we just initialize the connection
-    def __init__(self):
-        MConnection.__init__(self)
+    # For the initialization of this class, we initialize the data necessary for the permission module
+    def __init__(self, connexion):
+        self.my_connexion = connexion
+        self._listOfAllowed = []
+        self._listOfPermissions = []
+        self._connected_users = []
+        self._connected_users_buttons = []
+        self._connected_users_permission_buttons = []
+
 
     # ____________________________Permission Message Handling__________________________________
     # Here we deal with the permission type messages
@@ -28,9 +28,10 @@ class Permission(MConnection):
         if _type == 'P':
             self._get_permission_from_message(msg)
         elif _type == 'A':
-            self.connected_users.append(msg[1])
+            self._connected_users.append(msg[1])
         elif _type == 'RE':
-            self.connected_users.remove(msg[1])
+            print(self._listOfPermissions)
+            self._connected_users.remove(msg[1])
 
     # Here we get the permissions from the message
     # The messages are from the type (P,user1,user2)
@@ -41,23 +42,80 @@ class Permission(MConnection):
     # If i am user2 it means i just gave user1 permission so i add him to my listOfAllowed
     # If i am neither i just ignore the message!
     def _get_permission_from_message(self, msg):
-        if (self.ID == msg[1]):
-            if (msg[2] not in self.listOfPermissions):
-                self.listOfPermissions.append(msg[2])
+        if (self.my_connexion.ID == msg[1]):
+            if (msg[2] not in self._listOfPermissions):
+                self._listOfPermissions.append(msg[2])
             else:
-                self.listOfPermissions.remove(msg[2])
+                self._listOfPermissions.remove(msg[2])
 
-        elif (self.ID == msg[2]):
-            if (msg[1] not in self.listOfAllowed):
-                self.listOfAllowed.append(msg[1])
+        elif (self.my_connexion.ID == msg[2]):
+            if (msg[1] not in self._listOfAllowed):
+                self._listOfAllowed.append(msg[1])
             else:
-                self.listOfAllowed.remove(msg[1])
+                self._listOfAllowed.remove(msg[1])
 
     # ____________________________Permission Message Sending__________________________________
     # Here we have the function that sends the permission message
     # Since the text from the button is the username we want to grant our permission to, we use that in the function
     # and them our own ID, since we are giving our permission to that user
     def send_permission_message(self, event):
-        msg = ("P", event.widget['text'], self.ID)
-        self.send_message(msg)
+        msg = ("P", event.widget['text'], self.my_connexion.ID)
+        self.my_connexion.send_message(msg)
 
+
+    # ENCAPSULATION PART ###############################################
+    # - Protecting the List of Permissions
+    def add_to_list_of_permission(self, userID):
+        self._listOfPermissions.append(userID)
+
+    def remove_from_list_of_permission(self, userID):
+        self._listOfPermissions.remove(userID)
+
+    def get_list_of_permissions(self):
+        return self._listOfPermissions
+
+    # Protecting List of Allowed########################################
+    def add_to_list_of_allowed(self, userID):
+        self._listOfAllowed.append(userID)
+
+    def remove_from_list_of_allowed(self, userID):
+        self._listOfPermissions.remove(userID)
+
+    def get_list_of_allowed(self):
+        return self._listOfAllowed
+
+    # Protecting Connected Users########################################
+    def add_to_connected_users(self, userID):
+        self._connected_users.append(userID)
+
+    def remove_from_connected_users(self, userID):
+        self._connected_users.remove(userID)
+
+    def get_connected_users(self):
+        return self._connected_users
+
+    # Protecting Connected Users Buttons#################################
+    def add_to_connected_users_buttons(self, userID):
+        self._connected_users_buttons.append(userID)
+
+    def remove_from_connected_users_buttons(self, userID):
+        self._connected_users_buttons.remove(userID)
+
+    def pop_from_connected_users_buttons(self):
+        self._connected_users_buttons.pop()
+
+    def get_connected_users_buttons(self):
+        return self._connected_users_buttons
+
+    # Protecting Connected Users Permission Buttons######################
+    def add_to_connected_users_permissions_buttons(self, userID):
+        self._connected_users_permission_buttons.append(userID)
+
+    def remove_from_connected_users_permissions_buttons(self, userID):
+        self._connected_users_permission_buttons.remove(userID)
+
+    def pop_from_connected_users_permissions_buttons(self):
+        self._connected_users_buttons.pop()
+
+    def get_connected_users_permissions_buttons(self):
+        return self._connected_users_permission_buttons

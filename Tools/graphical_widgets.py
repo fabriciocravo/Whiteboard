@@ -17,6 +17,9 @@ class ExternalWindows:
     # A little bit confusing but it works
     _Temp = ""
 
+    # A flag to check whether you press the default exit button
+    _Flag = False
+
     # This method is used to show error boxes
     # Everytime an error message we show a box with the given message
     @classmethod
@@ -31,11 +34,11 @@ class ExternalWindows:
     # This value is set by inputing the value in the widgets
     @classmethod
     def getValuesFromUser(cls):
-
         def show_entry_fields():
             try:
                 cls._IP = e1.get()
                 cls._Port = int(e2.get())
+                cls._Flag = True
             except:
                 pass
             master.destroy()
@@ -43,6 +46,7 @@ class ExternalWindows:
         def exit_program():
             exit()
 
+        cls._Flag = False
         master = Tk()
         Label(master, text="Please type the host information").grid(row=0)
         Label(master, text="IP:").grid(row=1)
@@ -65,7 +69,8 @@ class ExternalWindows:
     # are within valid parameters
     @classmethod
     def check_ip_and_port(cls):
-
+        if cls._Flag == False:
+            exit()
         expression = r"^(?=.*[^\.]$)((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.?){4}$"
         if re.search(expression, cls._IP) is None:
             cls.show_error_box("Please type a valid IP address")
@@ -103,14 +108,14 @@ class ExternalWindows:
     # This class is used to retrieve the user's selected nickname
     @classmethod
     def get_nickname_from_user(cls):
-
         def get_text():
             try:
                 cls._Nickname = e1.get()
+                cls._Flag = True
             except:
                 pass
             master.destroy()
-
+        cls._Flag = False
         master = Tk()
         Label(master, text="Choose a Nickname").grid(row=0)
         e1 = Entry(master)
@@ -128,7 +133,8 @@ class ExternalWindows:
     # Why 6? Cause i wanted that way, it's a nickname for God sake
     @classmethod
     def check_nickname(cls):
-
+        if cls._Flag == False:
+            exit()
         if (len(cls._Nickname) > 6):
             ExternalWindows.show_error_box("Please choose a shorter nickname. 6 characters long")
             cls.get_nickname_from_user()
@@ -183,6 +189,7 @@ if __name__ == '__main__':
 
     ExternalWindows.getValuesFromUser()
     print(ExternalWindows.return_ip())
+
 
     ExternalWindows.get_nickname_from_user()
     print(ExternalWindows.return_nickname())

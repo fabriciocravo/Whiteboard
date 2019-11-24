@@ -1,10 +1,7 @@
 from tkinter import *
 from Tools.graphical_widgets import ExternalWindows
-from Tools.Permissions import Permission
-from Tools.SaveAndLoad import SaveAndLoad
 
-
-class Whiteboard(SaveAndLoad):
+class Whiteboard:
 
     # Here we initiate with the line drawing tool, this is the tool currently used to draw
     drawing_tool = "line"
@@ -14,8 +11,11 @@ class Whiteboard(SaveAndLoad):
 
     # Here we initiate the whiteboard by calling all the functions necessary to construct it
     # And also initiate the parent class!
-    def __init__(self):
-        SaveAndLoad.__init__(self)
+    # We call the save and load and permission classes here, we need them to instantiate the buttons
+    def __init__(self, connexion , save_and_load, permissions):
+        self.my_connexion = connexion
+        self.save_and_load = save_and_load
+        self.permissions = permissions
         self._init_whiteboard()
         self._init_item_button()
         self._init_user_button()
@@ -62,7 +62,7 @@ class Whiteboard(SaveAndLoad):
 
     # This is the own user button, it is used mostly as a display of the user name
     def _init_user_button(self):
-        Button(self.myWhiteBoard, text=self.ID, height=1, width=5, bg='snow').place(x=1100, y=0)
+        Button(self.myWhiteBoard, text=self.my_connexion.ID, height=1, width=5, bg='snow').place(x=1100, y=0)
 
     # This are the color buttons, they are responsible for changing the colors of the corresponding drawings
     def _init_color_button(self):
@@ -85,9 +85,9 @@ class Whiteboard(SaveAndLoad):
                command=lambda: self.set_color('black')).place(x=1010, y=400)
         Button(self.myWhiteBoard, height=1, width=5, bg='snow',
                command=lambda: self.set_color('snow')).place(x=1010, y=450)
-        Button(self.myWhiteBoard, height=1, width=5, bg='snow', text="Save", command=self.save).place(x=1010,
+        Button(self.myWhiteBoard, height=1, width=5, bg='snow', text="Save", command=self.save_and_load.save).place(x=1010,
                                                                                                            y=500)
-        Button(self.myWhiteBoard, height=1, width=5, bg='snow', text="Load", command=self.load).place(x=1010,
+        Button(self.myWhiteBoard, height=1, width=5, bg='snow', text="Load", command=self.save_and_load.load).place(x=1010,
                                                                                                            y=550)
 
     # This function updates the current connected users on the channel
@@ -99,28 +99,28 @@ class Whiteboard(SaveAndLoad):
     # This generate a button with their ID displayed in the program
     def update_connected_user(self):
         start_y = 50
-        for i in range(len(self.connected_users_buttons)):
-            self.connected_users_buttons[i].destroy()
-        for userID in self.connected_users:
-            if (userID in self.listOfAllowed):
+        while len(self.permissions.get_connected_users_buttons()) != 0:
+            self.permissions.pop_from_connected_users_buttons()
+        for userID in self.permissions.get_connected_users():
+            if (userID in self.permissions.get_list_of_allowed()):
                 button = Button(self.myWhiteBoard, text=userID, height=1, width=5, bg='green')
-                button.bind('<Button-1>', self.send_permission_message)
+                button.bind('<Button-1>', self.permissions.send_permission_message)
             else:
                 button = Button(self.myWhiteBoard, text=userID, height=1, width=5, bg='red')
-                button.bind('<Button-1>', self.send_permission_message)
+                button.bind('<Button-1>', self.permissions.send_permission_message)
             button.place(x=1100, y=start_y)
-            self.connected_users_buttons.append(button)
+            self.permissions.add_to_connected_users_buttons(button)
 
             start_y += 50
 
         start_y = 50
-        for i in range(len(self.connected_users_permission_buttons)):
-            self.connected_users_permission_buttons[i].destroy()
-        for userID in self.connected_users:
-            if (userID in self.listOfPermissions):
+        while len(self.permissions.get_connected_users_permissions_buttons()) != 0:
+            self.permissions.pop_from_connected_users_permissions_buttons()
+        for userID in self.permissions.get_connected_users():
+            if (userID in self.permissions.get_list_of_permissions()):
                 button = Button(self.myWhiteBoard, text=userID, height=1, width=5, bg='snow')
                 button.place(x=1150, y=start_y)
-                self.connected_users_permission_buttons.append(button)
+                self.permissions.add_to_connected_users_permissions_buttons(button)
                 start_y += 50
 
     # Here we initiate the drawing area, which is a canvas
@@ -161,6 +161,6 @@ class Whiteboard(SaveAndLoad):
         A = self.drawing_area.find_all()
         for a in A:
             a = self.drawing_area.gettags(a)
-            if a[0] in self.listOfPermissions or a[0] not in self.connected_users:
+            if a[0] in self.permissions.get_list_of_permissions() or a[0] not in self.permissions.get_connected_users():
                 msg = ("E",a[1])
-                self.send_message(msg)
+                self.my_connexion.send_message(msg)

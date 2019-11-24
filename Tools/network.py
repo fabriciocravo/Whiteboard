@@ -10,8 +10,8 @@ class MConnection:
     # From this class we recover the values that have been typed on the widget to start our connection!
     def __init__(self):
         ExternalWindows.getValuesFromUser()
-        self.host = ExternalWindows.return_ip()
-        self.port = ExternalWindows.return_port()
+        self._host = ExternalWindows.return_ip()
+        self._port = ExternalWindows.return_port()
 
         # Here we attempt to establish a connection
         # We open a socket in the given port and IP
@@ -21,24 +21,24 @@ class MConnection:
         # After the id has been chosen it responds to the server so it can add to the list of clients
         try:
             self.s = socket.socket()
-            self.s.connect((self.host, self.port))
+            self.s.connect((self._host, self._port))
             data = self.s.recv(3).decode()
             if data == 'HLO':
-                print('[Network]Connection with %s:%s established.' % (self.host, self.port))
+                print('[Network]Connection with %s:%s established.' % (self._host, self._port))
 
             data = self.s.recv(1024).decode()
             UserNames = data.split()
 
             while True:
                 ExternalWindows.get_nickname_from_user()
-                self.ID = ExternalWindows.return_nickname()
-                if (self.ID in UserNames):
+                self._ID = ExternalWindows.return_nickname()
+                if (self._ID in UserNames):
                     ExternalWindows.show_error_box("User name is taken")
                     continue
                 break
 
-            self.s.sendall(self.ID.encode())
-            print("Received ID is : " + self.ID)
+            self.s.sendall(self._ID.encode())
+            print("Received ID is : " + self._ID)
         except SystemExit:
             exit()
         except:
@@ -75,7 +75,14 @@ class MConnection:
                 continue
             msg = msg + data
         msg = msg.split()
-        print(msg)
         return msg
 
 
+    # Encapsulation of the USER ID ##########################################################
+    def get_user_id(self):
+        return self._ID
+
+    def set_user_id(self, ID):
+        self._ID = ID
+
+    ID = property(get_user_id, set_user_id)

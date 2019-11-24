@@ -7,6 +7,7 @@ from Tools.graphical_widgets import ExternalWindows
 from Tools.SaveAndLoad import SaveAndLoad
 from Tools.Messanger import Messager
 from Tools.Permissions import Permission
+from Tools.network import MConnection
 
 class Client(Thread,Messager):
 
@@ -26,12 +27,16 @@ class Client(Thread,Messager):
     Objects = {'line': 'L', 'oval': 'O', 'circle': 'C', 'rectangle': 'R', 'square': 'S', 'erase': 'E', 'drag': 'DR'}
 
     def __init__(self):
-        Messager.__init__(self)
+        my_connexion = MConnection()
+        save_and_load = SaveAndLoad(my_connexion)
+        permissions = Permission(my_connexion)
+
+        Messager.__init__(self, my_connexion, save_and_load, permissions)
         Thread.__init__(self)
         self.setDaemon(True)
         self._init_mouse_action()
         self.text = "WOW"
-        self.listOfPermissions.append(self.ID)
+        self.permissions.add_to_list_of_permission(self.my_connexion.ID)
         self.update_connected_user()
 
         # This part refers to the class that allows user to exchange messages between themselves
@@ -39,12 +44,13 @@ class Client(Thread,Messager):
     def run(self):
         while True:
             try:
-                msg = self.receive_message()
+                msg = self.my_connexion.receive_message()
+                print(msg)
                 if( msg[0] in ['O', 'C', 'L', 'R', 'S', 'E', 'D', 'Z', 'T', 'DR']):
                     self.draw_from_message(msg)
-                    self.append_to_Logs(msg)
+                    self.save_and_load.append_to_Logs(msg)
                 elif( msg[0] in ['P', 'A', 'RE']):
-                    self.user_communication(msg)
+                    self.permissions.user_communication(msg)
                     self.update_connected_user()
                 elif( msg[0] in ['TA'] ):
                     self.print_message(msg)
@@ -54,7 +60,7 @@ class Client(Thread,Messager):
                 pass
             except ConnectionResetError:
                 ExternalWindows.show_error_box("Server down please save your work")
-                self.save()
+                self.save_and_load.save()
                 self.myWhiteBoard.destroy()
 
 
@@ -81,7 +87,7 @@ class Client(Thread,Messager):
         if self.drawing_tool == "eraser":
             self.delete_item(event)
 
-        # Get tag of current object clicked object for draging function
+        # Get tag of current object clicked object for dragging function
         try:
             self.user_last_object_clicked = self.drawing_area.gettags('current')[0]
             self.last_object_clicked = self.drawing_area.gettags('current')[1]
@@ -139,8 +145,8 @@ class Client(Thread,Messager):
             # if self.x_pos is not None and self.y_pos is not None:
             # event.widget.create_line(self.x_pos, self.y_pos, event.x, event.y, smooth=TRUE)
             time.sleep(0.02)
-            msg = ('D', self.x_pos, self.y_pos, event.x, event.y, self.color, self.ID)
-            self.send_message(msg)
+            msg = ('D', self.x_pos, self.y_pos, event.x, event.y, self.color, self.my_connexion.ID)
+            self.my_connexion.send_message(msg)
 
             self.x_pos = event.x
             self.y_pos = event.y
@@ -160,8 +166,8 @@ class Client(Thread,Messager):
         if None not in (self.x1_line_pt, self.y1_line_pt):
             # Show all fonts available
             self.text = ExternalWindows.return_text()
-            msg = ('T', self.text, self.x1_line_pt, self.y1_line_pt, self.color, self.ID)
-            self.send_message(msg)
+            msg = ('T', self.text, self.x1_line_pt, self.y1_line_pt, self.color, self.my_connexion.ID)
+            self.my_connexion.send_message(msg)
 
     # ------- Sending Messages for drawing ------------------------------------------------------
     # In this function we prepare the messages that will be sent by the connexion class
@@ -171,13 +177,13 @@ class Client(Thread,Messager):
     def send_item(self, msg_type):
         if msg_type in ['L', 'C', 'O', 'R', 'S']:
             msg = (msg_type, self.x1_line_pt, self.y1_line_pt, self.x2_line_pt, self.y2_line_pt,
-                   self.color, self.ID)
-            self.send_message(msg)
+                   self.color, self.my_connexion.ID)
+            self.my_connexion.send_message(msg)
         if msg_type in ['DR']:
-            if self.last_object_clicked is not None and self.user_last_object_clicked in self.listOfPermissions:
+            if self.last_object_clicked is not None and self.user_last_object_clicked in self.permissions.get_list_of_permissions():
                 msg = (msg_type, self.last_object_clicked, self.x2_line_pt - self.x1_line_pt,
                        self.y2_line_pt - self.y1_line_pt)
-                self.send_message(msg)
+                self.my_connexion.send_message(msg)
 
     # DELETE STUFF ####################################
     # Here we find the canvas id of whatever we clicked on
@@ -194,12 +200,12 @@ class Client(Thread,Messager):
                 pass
             if indice == 3:
                 user, global_id,whatever = self.drawing_area.gettags(canvas_item_id)
-                if user in self.listOfPermissions:
-                    self.send_message(('Z', global_id))
+                if user in self.permissions.get_list_of_permissions():
+                    self.my_connexion.send_message(('Z', global_id))
             elif indice == 2:
                 user, global_id = self.drawing_area.gettags(canvas_item_id)
-                if (user in self.listOfPermissions) or (user not in self.connected_users):
-                    self.send_message(('Z', global_id))
+                if (user in self.permissions.get_list_of_permissions()) or (user not in self.permissions.get_connected_users()):
+                    self.my_connexion.send_message(('Z', global_id))
 
     ######################### Connexions ##############################################
     # This part refers to the addition of Buttons when new people connect to the server

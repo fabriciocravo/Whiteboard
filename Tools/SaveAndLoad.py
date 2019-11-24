@@ -9,20 +9,20 @@ from Tools.Permissions import Permission
 # However, they are stored differently, here they are store in tuple format
 # In the server they are stored in message format
 # This allows for direct sending in both cases!
-class SaveAndLoad(Permission):
+class SaveAndLoad():
 
-    #Here we define an object that allows the user to register the logs from his whiteboard
-    Logs = {}
+    # Here we define an object that allows the user to register the logs from his whiteboard
+    def __init__(self, connexion):
+        self.my_connexion = connexion
+        self._Logs = {}
 
-    def __init__(self):
-        Permission.__init__(self)
 
-
-    #For each message the user receives we append it to it's logs object
-    #If the message is from the drag type we change it's position
+    # For each message the user receives we append it to it's logs object
+    # If the message is from the drag type we change it's position
+    # Works as encapsulation of the logs variable
     def append_to_Logs(self, msg):
         if(msg[0] in ['O', 'C', 'L', 'R', 'S', 'D', 'T']):
-            self.Logs[msg[-1]] = msg[:-1]
+            self._Logs[msg[-1]] = msg[:-1]
         elif(msg[0] in ['E', 'Z']):
             self.delete_from_local_logs(msg)
         elif(msg[0] == 'DR'):
@@ -35,7 +35,7 @@ class SaveAndLoad(Permission):
     def change_position(self, msg):
 
         # We retrieve the original message
-        OriginalMessage = self.Logs[msg[1]]
+        OriginalMessage = self._Logs[msg[1]]
 
         # Them add to the coordinates according to the drag!
         # The position of the coordinates of each message is different for different types of message
@@ -52,7 +52,7 @@ class SaveAndLoad(Permission):
     # Here we delete an object from the logs if a delete message has been received
     def delete_from_local_logs(self, msg):
         try:
-            self.Logs.pop(msg[1])
+            self._Logs.pop(msg[1])
         except KeyError:
             pass
 
@@ -61,7 +61,8 @@ class SaveAndLoad(Permission):
         path = asksaveasfilename( defaultextension=".pickle")
         try:
             with open(path, "wb") as file:
-                pickle.dump(self.Logs, file)
+                pickle.dump(b"Y", file)
+                pickle.dump(self._Logs, file)
         except FileNotFoundError:
             pass
 
@@ -72,11 +73,18 @@ class SaveAndLoad(Permission):
         filename = askopenfilename()
         try:
             with open(filename, 'rb') as file:
-                self.LoadedLogs = pickle.load(file)
-                for key in self.LoadedLogs:
-                    self.send_message(self.LoadedLogs[key])
+                greeting = pickle.load(file)
+                if( greeting == b"Y"):
+                    loaded_logs = pickle.load(file)
+                    for key in loaded_logs:
+                        self.my_connexion.send_message(loaded_logs[key])
+                else:
+                    ExternalWindows.show_error_box("Invalid pickle file")
         except FileNotFoundError:
             pass
+        except pickle.UnpicklingError:
+            ExternalWindows.show_error_box("Wrong File Type")
+
 
 
 

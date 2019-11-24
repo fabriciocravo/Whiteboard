@@ -9,8 +9,8 @@ class DrawingTools(Whiteboard):
               'd': 'black', 's': 'snow'}
     line_width = 2
 
-    def __init__(self):
-        Whiteboard.__init__(self)
+    def __init__(self, connexion, save_and_load, permissions):
+        Whiteboard.__init__(self, connexion, save_and_load, permissions)
 
     # ---------- DRAW FROM MESSAGE----------
 
