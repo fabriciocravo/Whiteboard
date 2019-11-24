@@ -59,11 +59,17 @@ class ExternalWindows:
         e2.grid(row=2, column=1)
 
         # Button(master,text='Start',command=master.quit).grid(row=3,column=1,sticky=W,pady=4)
-        Button(master, text='Set', command=show_entry_fields).grid(row=3, column=0, sticky=W, pady=4)
+        #Button(master, text='Set', command=show_entry_fields).grid(row=3, column=0, sticky=W, pady=4)
+        #button_set = Button(master, text="Set", command=show_entry_fields).grid(row=3, column=0, sticky=W, pady=4)
+        button = Button(master)
+        button.config(text="Set", command=show_entry_fields)
+        button.grid(row=3, column=0, sticky=W, pady=4)
         Button(master, text='Exit Program', command=exit_program).grid(row=4, column=0, sticky=W, pady=4)
+        master.bind('<Return>', lambda event=None: button.invoke())
         master.mainloop()
 
         cls.check_ip_and_port()
+
 
     # This method checks using regular expressions to see if the IP and port number
     # are within valid parameters
@@ -102,7 +108,10 @@ class ExternalWindows:
         Label(master, text="Text: ").grid(row=1)
         e1.grid(row=1, column=1)
 
-        Button(master, text='Set', command=get_text).grid(row=2, column=0, sticky=W, pady=4)
+        button = Button(master)
+        button.config(text='Set', command=get_text)
+        button.grid(row=2, column=0, sticky=W, pady=4)
+        master.bind('<Return>', lambda event=None: button.invoke())
         master.mainloop()
 
     # This class is used to retrieve the user's selected nickname
@@ -122,7 +131,10 @@ class ExternalWindows:
         Label(master, text="Text: ").grid(row=1)
         e1.grid(row=1, column=1)
 
-        Button(master, text='Set', command=get_text).grid(row=2, column=0, sticky=W, pady=4)
+        button = Button(master)
+        button.config(text='Set', command=get_text)
+        button.grid(row=2, column=0, sticky=W, pady=4)
+        master.bind('<Return>', lambda event=None: button.invoke())
         Button(master, text='Exit', command= exit).grid(row=2, column=0, pady=4)
         master.mainloop()
 

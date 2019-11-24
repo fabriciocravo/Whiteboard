@@ -34,7 +34,6 @@ class Server:
     # We send the server logs so the new user can redraw at the same state in the board
     # We send the list of connected users to construct the permission system
     def start(self):
-        print('listener started\n')
         while True:
             connexion, infos_connexion = self.network.accept()
             print("Sucess at " + str(infos_connexion))
@@ -57,23 +56,29 @@ class Server:
     # And finally it creates the Client Thread which will be responsible for listening to the user messages
     def wait_for_user_nickname(self, connexion):
         # Receive the chosen ID from user
-        new_user_id = connexion.recv(1024).decode()
+        try:
+            new_user_id = connexion.recv(1024).decode()
 
-        for log in Logs:
-            connexion.send(Logs[log])
+            for log in Logs:
+                connexion.send(Logs[log])
 
-        new_client = Client(connexion, new_user_id)
-        new_client.load_users()
-        Clients.append(new_client)
-        Server.ID = Server.ID + 1
-        new_client.start()
+            new_client = Client(connexion, new_user_id)
+            new_client.load_users()
+            Clients.append(new_client)
+            Server.ID = Server.ID + 1
+            new_client.start()
+        except ConnectionResetError:
+            pass
+        except ConnectionAbortedError:
+            pass
+
 
     # Function used by pinger
     # Sends a removal message to alert all users of the disconnection
     def announce_remove_user(self, disconnectedClient):
-        print("delete message sent\n")
-        msg = 'RE' + ' ' + str(disconnectedClient.clientID)
+        msg = 'RE' + ' ' + str(disconnectedClient.clientID) + ' ' + 'Ø'
         msg = msg.encode('ISO-8859-1')
+        print(threading.enumerate())
         for client in Clients:
             client.connexion.sendall(msg)
 
@@ -83,7 +88,6 @@ class Server:
     # 2.Removes client from list of clients to avoid sending messages to it again
     # 3.Sends the permission to delete the disconnected user stuff from the board!
     def pinger(self):
-        print('pinger started\n')
         while True:
             time.sleep(0.1)
             for client in Clients:
@@ -91,9 +95,11 @@ class Server:
                     msg = "ß".encode('ISO-8859-1')
                     client.connexion.send(msg)
                 except ConnectionResetError:
+                    client.terminate()
                     Clients.remove(client)
                     self.announce_remove_user(client)
                 except ConnectionAbortedError:
+                    client.terminate()
                     Clients.remove(client)
                     self.announce_remove_user(client)
 
@@ -107,6 +113,7 @@ class Client():
     def __init__(self, connexion, clientID):
         self.connexion = connexion
         self.clientID = clientID
+        self._run = True
 
     def load_users(self):
         for client in Clients:
@@ -115,8 +122,11 @@ class Client():
             msg = 'A' + ' ' + str(self.clientID) + ' ' + 'Ø'
             client.connexion.send(msg.encode('ISO-8859-1'))
 
+    def terminate(self):
+        self._run = False
+
     def start(self):
-        while True:
+        while self._run:
             try:
                 # Here we start by reading the messages
                 # Split according to the protocol
@@ -189,7 +199,6 @@ class Client():
         # We retrieve the original message
         original_message = Logs[splitMsg[1]]
         original_message = original_message[:-1]
-        print(original_message)
         original_message = original_message.decode('ISO-8859-1')
         original_message = original_message.split()
 

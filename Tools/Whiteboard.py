@@ -100,7 +100,8 @@ class Whiteboard:
     def update_connected_user(self):
         start_y = 50
         while len(self.permissions.get_connected_users_buttons()) != 0:
-            self.permissions.pop_from_connected_users_buttons()
+            button = self.permissions.pop_from_connected_users_buttons()
+            button.destroy()
         for userID in self.permissions.get_connected_users():
             if (userID in self.permissions.get_list_of_allowed()):
                 button = Button(self.myWhiteBoard, text=userID, height=1, width=5, bg='green')
@@ -115,7 +116,8 @@ class Whiteboard:
 
         start_y = 50
         while len(self.permissions.get_connected_users_permissions_buttons()) != 0:
-            self.permissions.pop_from_connected_users_permissions_buttons()
+            button = self.permissions.pop_from_connected_users_permissions_buttons()
+            button.destroy()
         for userID in self.permissions.get_connected_users():
             if (userID in self.permissions.get_list_of_permissions()):
                 button = Button(self.myWhiteBoard, text=userID, height=1, width=5, bg='snow')

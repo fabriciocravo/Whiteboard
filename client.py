@@ -1,8 +1,5 @@
 import time
-from tkinter import *
 from threading import Thread
-from threading import active_count
-from Tools.drawing_tools import DrawingTools
 from Tools.graphical_widgets import ExternalWindows
 from Tools.SaveAndLoad import SaveAndLoad
 from Tools.Messanger import Messager
@@ -41,11 +38,12 @@ class Client(Thread,Messager):
 
         # This part refers to the class that allows user to exchange messages between themselves
 
+    # The run handles the messages
+    # As it recognizes the type it assigns to the proper class that will handle it!
     def run(self):
         while True:
             try:
                 msg = self.my_connexion.receive_message()
-                print(msg)
                 if( msg[0] in ['O', 'C', 'L', 'R', 'S', 'E', 'D', 'Z', 'T', 'DR']):
                     self.draw_from_message(msg)
                     self.save_and_load.append_to_Logs(msg)

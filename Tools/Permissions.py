@@ -23,15 +23,18 @@ class Permission():
     # If the message starts with an A it is the connection of a new user
     # If the message starts with an RE it is the removal (or exit) of an existing user
     def user_communication(self, msg):
-
         _type = msg[0]
         if _type == 'P':
             self._get_permission_from_message(msg)
         elif _type == 'A':
             self._connected_users.append(msg[1])
         elif _type == 'RE':
-            print(self._listOfPermissions)
             self._connected_users.remove(msg[1])
+            try:
+                self._listOfPermissions.remove(msg[1])
+            except ValueError:
+                pass
+
 
     # Here we get the permissions from the message
     # The messages are from the type (P,user1,user2)
@@ -102,7 +105,7 @@ class Permission():
         self._connected_users_buttons.remove(userID)
 
     def pop_from_connected_users_buttons(self):
-        self._connected_users_buttons.pop()
+        return self._connected_users_buttons.pop()
 
     def get_connected_users_buttons(self):
         return self._connected_users_buttons
@@ -115,7 +118,7 @@ class Permission():
         self._connected_users_permission_buttons.remove(userID)
 
     def pop_from_connected_users_permissions_buttons(self):
-        self._connected_users_buttons.pop()
+        return self._connected_users_permission_buttons.pop()
 
     def get_connected_users_permissions_buttons(self):
         return self._connected_users_permission_buttons
